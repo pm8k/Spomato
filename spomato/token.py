@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import spotipy
+from spotipy import oauth2
 from splinter import Browser
 import requests
 import base64
@@ -45,7 +46,7 @@ def get_new_token(username=None,password=None,login='facebook'):
     scope = read_scope + ' ' + modify_scope
     norm_scope = _normalize_scope(scope)
 
-    sp_oauth = spotipy.oauth2.SpotifyOAuth(client_id, client_secret, redirect_uri,
+    sp_oauth = oauth2.SpotifyOAuth(client_id, client_secret, redirect_uri,
             scope=norm_scope, cache_path=".cache-" + username )
     auth_url = sp_oauth.get_authorize_url()
 
