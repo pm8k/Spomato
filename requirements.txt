@@ -1,0 +1,3 @@
+spotipy==2.4.4
+splinter==0.7.5
+pandas==0.19.2

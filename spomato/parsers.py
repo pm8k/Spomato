@@ -1,7 +1,6 @@
 import pandas as pd
 
 def parse_album(data, market='US'):
-    print 'P1'
     series_list = []
     data = data['tracks']['items']
     for i in range(len(data)):
@@ -19,7 +18,6 @@ def parse_album(data, market='US'):
     return df
 
 def parse_playlist(data, market='US'):
-    print 'P2'
     series_list = []
     data = data['tracks']['items']
     for i in range(len(data)):
@@ -36,7 +34,6 @@ def parse_playlist(data, market='US'):
     return df
 
 def parse_saved_tracks(data,market='US'):
-    print 'P3'
     series_list = []
     for i in range(len(data)):
         record = data[i]['track']
