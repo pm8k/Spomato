@@ -1,2 +1,12 @@
+# compiled files
 *.pyc
+
+# exploratory notebooks
 *.ipynb
+
+# Setuptools distribution folder.
+/dist/
+
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
+/*.egg
