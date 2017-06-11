@@ -21,9 +21,9 @@ setup(name='spomato',
       license='MIT',
       packages=['spomato'],
         install_requires=[
-          'spotipy'==2.4.4,
-          'splinter'==0.7.5,
-          'pandas'==0.19.2
+          'spotipy==2.4.4',
+          'splinter==0.7.5',
+          'pandas==0.19.2'
       ],
       include_package_data=True,
 
