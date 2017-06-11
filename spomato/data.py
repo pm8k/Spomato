@@ -12,7 +12,7 @@ def load_cached_data(profile):
     data = pd.read_csv(file_path+profile)
     return data
 
-def get_data(current_user_id=None,sp=None,profile_name=None,save=True,sourcetype='likedfromradio',sourcelist=[],reset=False):
+def get_data(current_user_id=None,sp=None,profile_name=None,save=True,sourcetype='savedtracks',sourcelist=[],reset=False):
     if profile_name:
         if os.path.isfile(file_path+profile_name) and reset==False:
             data = load_cached_data(profile_name)
@@ -31,9 +31,9 @@ def get_data(current_user_id=None,sp=None,profile_name=None,save=True,sourcetype
 
     return data
 
-def get_new_data(current_user_id,sp=None,sourcetype='likedfromradio',sourcelist=[], market='US'):
+def get_new_data(current_user_id,sp=None,sourcetype='savedtracks',sourcelist=[], market='US'):
 
-    if sourcetype == 'likedfromradio':
+    if sourcetype == 'savedtracks':
         # print 'SAVEDTRACKS'
         data = get_saved_tracks(sp)
 
@@ -80,11 +80,12 @@ def get_saved_tracks(read_sp):
 
     return df
 
-def pick_songs(df, time=25, extra=5):
+def pick_songs(df, time=25, extra=5, time_limit=None):
 
     time = time*60
-    extra = 5*60
-    time_limit = time/3.0
+    extra = extra*60
+    if time_limit == None:
+        time_limit = time/3.0
     subdf = df[df.time<=time_limit]
     time_used = 0
 
@@ -125,7 +126,10 @@ def get_artist_data(sp,artist_id):
     return data
 
 
-def make_playlist(sp, playlist_name,songdf,playlist_df,current_user_id):
+def make_playlist(sp, playlist_name,songdf,current_user_id,playlist_df=None):
+    if playlist_df==None:
+        playlist_df = get_playlists(sp)
+
     if playlist_name in playlist_df.playlist_name.tolist():
         # print('replacing')
         playlist_id = playlist_df[playlist_df.playlist_name==playlist_name].iloc[0].playlist_id
