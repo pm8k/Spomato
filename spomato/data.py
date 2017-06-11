@@ -1,7 +1,7 @@
 
 import os
 import pandas as pd
-from parsers import parse_album, parse_playlist, parse_saved_tracks
+from spomato.parsers import parse_album, parse_playlist, parse_saved_tracks
 
 file_path = os.path.expanduser('~')+'/'
 
