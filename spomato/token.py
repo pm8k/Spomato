@@ -16,14 +16,14 @@ def get_token(username=None,password=None,login='facebook'):
     if os.path.isfile(file_path+'token_info.csv'):
         token_info = pd.Series.from_csv(file_path+'token_info.csv')
         token = token_info['access_token']
-        print 'reading token from csv'
+        # print 'reading token from csv'
         if int(token_info['expires_at'])-int(time.time()) <= 0:
-            print 'token expired, create new token'
+            # print 'token expired, create new token'
             token,token_info = get_new_token(username,password,login)
             token_info.to_csv(file_path+'token_info.csv')
 
     else:
-        print 'generate first token'
+        # print 'generate first token'
         token,token_info = get_new_token(username,password,login)
         token_info.to_csv(file_path+'token_info.csv')
 

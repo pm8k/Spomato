@@ -16,29 +16,29 @@ def get_data(current_user_id=None,sp=None,profile_name=None,save=True,sourcetype
     if profile_name:
         if os.path.isfile(file_path+profile_name) and reset==False:
             data = load_cached_data(profile_name)
-            print 'loading from csv'
+            # print 'loading from csv'
         else:
             data = get_new_data(current_user_id=current_user_id,sp=sp,sourcetype=sourcetype,sourcelist=sourcelist)
-            print 'loading data under profile'
+            # print 'loading data under profile'
             if save:
                 cache_data(data,profile_name)
-                print 'caching data'
+                # print 'caching data'
 
     else:
 
         data = get_new_data(current_user_id=current_user_id,sp=sp,sourcetype=sourcetype,sourcelist=sourcelist)
-        print 'just getting data'
+        # print 'just getting data'
 
     return data
 
 def get_new_data(current_user_id,sp=None,sourcetype='likedfromradio',sourcelist=[], market='US'):
 
     if sourcetype == 'likedfromradio':
-        print 'SAVEDTRACKS'
+        # print 'SAVEDTRACKS'
         data = get_saved_tracks(sp)
 
     elif sourcetype == 'playlist':
-        print 'PLAYLISTS'
+        # print 'PLAYLISTS'
         playlist_df = get_playlists(sp)
         subpdf = playlist_df[playlist_df.playlist_name.isin(sourcelist)]
         dflist=[]
@@ -51,7 +51,7 @@ def get_new_data(current_user_id,sp=None,sourcetype='likedfromradio',sourcelist=
         data.drop_duplicates(inplace=True)
 
     elif sourcetype == 'artist':
-        print 'ARTISTS'
+        # print 'ARTISTS'
         dflist=[]
         for artist in sourcelist:
             artist_songs = get_artist_data(sp,artist)
@@ -127,14 +127,14 @@ def get_artist_data(sp,artist_id):
 
 def make_playlist(sp, playlist_name,songdf,playlist_df,current_user_id):
     if playlist_name in playlist_df.playlist_name.tolist():
-        print('replacing')
+        # print('replacing')
         playlist_id = playlist_df[playlist_df.playlist_name==playlist_name].iloc[0].playlist_id
         sp.user_playlist_replace_tracks(user = current_user_id,
                                             playlist_id = playlist_id,
                                             tracks = songdf.song_id.tolist()
                                            )
     else:
-        print('new!')
+        # print('new!')
         sp.user_playlist_create(current_user_id, playlist_name, public=False)
         playlist_df = get_playlists(sp)
         playlist_id = playlist_df[playlist_df.playlist_name==playlist_name].iloc[0].playlist_id
