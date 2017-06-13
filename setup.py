@@ -14,9 +14,11 @@ version = '.'.join([str(v) for v in [major, minor, patch]])
 setup(name='spomato',
       version=version,
       description='Tomato Timer with Spotify',
-      url='http://github.com/pm8k/spomato',
+      url='https://github.com/pm8k/spomato',
+      download_url = 'https://github.com/pm8k/spomato/archive/0.1.tar.gz', # I'll explain this in a second
+
       long_description=readme(),
-      author='PM8K',
+      author='Matthew Russell',
       author_email='astromars42@gmail.com',
       license='MIT',
       keywords=['python', 'spotify', 'spotipy', 'tomato', 'timer', 'music'],
