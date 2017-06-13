@@ -1,9 +1,8 @@
 # Spomato
 
-To include:
-How to install from github
-Installation of chrome drivers
-setting environment variables
+Welcome!
+
+This project is intended to be a way to generate playlists through the Spotify API. The main purpose was to create a number of Tomato Timer length playlists through Spotify (hence the name Spomato, yeah, its silly). 
 
 ## Installation
 
