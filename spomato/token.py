@@ -75,7 +75,8 @@ def get_new_token(username=None,password=None,login='facebook'):
 def get_url_code(auth_url,username,password,login='facebook'):
     b = Browser(driver_name='chrome')
     b.visit(auth_url)
-    b.click_link_by_partial_href("/en/login")
+    # removing  login click as it redirects to that page automatically now
+    # b.click_link_by_partial_href("/en/login")
     if login=='facebook':
         b.click_link_by_partial_href("https://www.facebook.com")
         b.fill_form({'email':username,'pass':password})
