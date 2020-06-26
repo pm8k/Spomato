@@ -4,7 +4,7 @@ Setup file for Spomato
 
 """
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 def readme():
     """Opens the readme file and returns it as a string
@@ -36,7 +36,7 @@ setup(name='spomato',
       license='MIT',
       keywords=['python', 'spotify', 'spotipy', 'tomato', 'timer', 'music'],
       py_modules='spomato',
-      packages=['spomato'],
+      packages=find_packages(),
       install_requires=[
           'pandas',
           'spotipy'
