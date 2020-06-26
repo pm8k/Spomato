@@ -29,7 +29,7 @@ setup(name='spomato',
       version=VERSION,
       description='Tomato Timer with Spotify',
       url='https://github.com/pm8k/spomato',
-      download_url = 'https://github.com/pm8k/spomato/archive/0.2.0.tar.gz',
+      download_url = 'https://github.com/pm8k/spomato/archive/{V}.tar.gz'.format(V=VERSION),
 
       long_description=readme(),
       author='Matthew Russell',
@@ -37,7 +37,6 @@ setup(name='spomato',
       license='MIT',
       keywords=['python', 'spotify', 'spotipy', 'tomato', 'timer', 'music'],
 
-      packages=['spomato'],
         install_requires=[
           'pandas',
           'spotipy'
