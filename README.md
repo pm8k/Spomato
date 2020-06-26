@@ -23,11 +23,11 @@ You need to have a Spotify Access token in order to access the Spotify API. The 
 playlist-read-private, playlist-modify-private, and user-library-read.
 
 You can find the [Spotify Authorization flow here](https://developer.spotify.com/documentation/general/guides/authorization-guide/)
-and you can find the [Spotipy implmentation here](https://spotipy.readthedocs.io/en/2.12.0/#authorization-code-flow)
+and you can find the [Spotipy implementation here](https://spotipy.readthedocs.io/en/2.12.0/#authorization-code-flow).
 
 ## Using Spomato
 
-### Create a Spomato object with the provided access token:
+### Create a Spomato object with a Spotify Access Token:
 
 Create a Spomato object providing your token.
 ```
@@ -38,7 +38,7 @@ sp = spomato.Spomato(access_token='your-token')
 
 The first step is to create one or more datasets to use as a source for your playlist.
 
-#### Creating a Dataset from your saved tracks
+#### Creating a Dataset from Your Saved Tracks
 
 You can use the user's saved tracks as your dataset. This is the default, or you can specify it as below:
 
@@ -47,7 +47,7 @@ sp.get_api_data(data_key='your_dataset_name',
                 source={'savedtracks':None})
 ```
 
-#### Creating a Dataset from your playlist(s)
+#### Creating a Dataset from Your Playlist(s)
 
 You can use the user's playlist(s) as your dataset.
 
@@ -56,7 +56,7 @@ sp.get_api_data(data_key='your_dataset_name',
                 source={'playlist':['playlistid1','playlistid2']})
 ```
 
-#### Creating a Dataset from an artist
+#### Creating a Dataset from an Artist
 
 You can use any number of artists to create your dataset.
 
@@ -65,7 +65,7 @@ sp.get_api_data(data_key='your_dataset_name',
                 source={'artist':['artistid1','artistid2']})
 ```
 
-#### Creating a Dataset from multiple sources
+#### Creating a Dataset from Multiple Sources
 
 You can use any of the above sources to create a dataset.
 
@@ -74,14 +74,14 @@ sp.get_api_data(data_key='your_dataset_name',
                 source={'artist':['artistid1','artistid2'], 'playlist':['playlistid4', 'savedtracks':None]})
 ```
 
-#### Additional arguments
+#### Additional Arguments
 
 There are a few more arguments you can pass to generate a dataset:
  - file_path: If you want to save the dataset to file, pass in a path to a file to save a csv of your dataset
  - reset: A boolean to determine if you want to overwrite a dataset you've previously created
  - market: The Spotify market to filter the songs that can be added to a playlist
 
-#### Read the Dataset from file
+#### Read the Dataset from File
 
 If you saved the file, you can also use that to load it back into a dataset:
 
@@ -107,7 +107,7 @@ You can alternatively go through Spotify and find the corresponding id in the we
 
 ### Creating a Playlist
 
-#### Get the song list to create a playlist
+#### Get the Song List to Create a playlist
 
 You can use our built in function to select tracks from a dataset to make your playlist.
 
@@ -123,8 +123,9 @@ You can also generate you own dataframe using your own logic. You can access a d
 dataset_df = sp['data']['my_dataset']
 ```
 
-### Create the playlist
+### Create the Playlist
 
 Once you have the dataframe of your songs generated, you can create the playlist.
-
+```
 sp.make_playlist(playlist_name='New_Playlist_Name', song_df=my_song_df)
+```
