@@ -1,18 +1,32 @@
+"""Author: Matthew Russell
+
+Setup file for Spomato
+
+"""
+
 from setuptools import setup
 
 def readme():
-    with open('README.md') as f:
-        return f.read()
+    """Opens the readme file and returns it as a string
+
+    Returns
+    -------
+    string:
+        A string representation of the readme file
+
+    """
+    with open('README.md') as file:
+        return file.read()
 
 
-major = 0
-minor = 1
-patch = 1
-version = '.'.join([str(v) for v in [major, minor, patch]])
+MAJOR = 0
+MINOR = 2
+PATCH = 0
+VERSION = '.'.join([str(v) for v in [MAJOR, MINOR, PATCH]])
 
 
 setup(name='spomato',
-      version=version,
+      version=VERSION,
       description='Tomato Timer with Spotify',
       url='https://github.com/pm8k/spomato',
       download_url = 'https://github.com/pm8k/spomato/archive/0.2.0.tar.gz',
