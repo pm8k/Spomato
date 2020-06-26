@@ -25,7 +25,6 @@ setup(name='spomato',
 
       packages=['spomato'],
         install_requires=[
-          'spotify-token',
           'pandas',
           'spotipy'
       ],

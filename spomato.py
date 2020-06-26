@@ -1,0 +1,721 @@
+"""Author: Matthew Russell
+
+This contains the main Spomato class to be used to access the Spotify API and create new playlists based on the user's
+defined criteria.
+
+"""
+
+import os
+import pandas as pd
+import spotipy
+
+class Spomato():
+    """Object used to access spotify API through spotipy and generate playlists.
+
+    This can take a combination user's saved tracks, playlists, and/or artist's songs to generate a playlist of a
+    specified length. This was conceived to use the Tomato Timer method as Spotify playlists.
+
+    This does require the user to provide a user API token from the spotify API. The API scopes used by this library are
+    playlist-read-private, playlist-modify-private, and user-library-read.
+
+    Parameters
+    ----------
+    access_token : str
+        A valid Spotify Access token.
+
+    Attributes
+    ----------
+    data : dictionary
+        Dictionary storing available data structures to create playlists.
+    spotipy_session : spotipy.client.Spotify
+        A spotipy session to access the spotify API.
+    access_token : str
+        A valid Spotify Access token. This requires the scopes playlist-read-private, playlist-modify-private,
+        and user-library-read
+    current_user_id : str
+        The string id of the user of the access token used to create the spotipy session.
+
+    """
+
+    def __init__(self,
+                 access_token=None):
+        """Initialization function that sets access token and generates initial spotipy session.
+
+        Parameters
+        ----------
+        access_token : str
+            A valid Spotify Access token. This requires the scopes playlist-read-private, playlist-modify-private,
+            and user-library-read.
+
+        Returns
+        -------
+        None
+
+        """
+
+        self.access_token = access_token
+        self.data = {}
+
+        self.spotipy_session = self._get_spotipy_session()
+
+        self.current_user_id = self.spotipy_session.current_user()['id']
+
+    def update_token(self, access_token):
+        """Updates the token and spotify session with the provided access_token. Generally used if your access token
+        has expired.
+
+        Parameters
+        ----------
+        access_token : str
+            A valid Spotify Access token. This requires the scopes playlist-read-private, playlist-modify-private,
+            and user-library-read.
+
+        Returns
+        -------
+        None
+
+        """
+        self.access_token = access_token
+        self.spotipy_session = self._get_spotipy_session()
+        self.current_user_id = self.spotipy_session.current_user()['id']
+
+
+    def _get_spotipy_session(self):
+        """Internal Function to create a new spotify session.
+
+        Returns
+        -------
+        spotipy_session : spotipy.client.Spotify
+            A spotipy session to access the spotify API.
+
+        """
+        return spotipy.Spotify(auth=self.access_token)
+
+
+    @staticmethod
+    def _parse_album(album_data, market='US'):
+        """Parses the album data returned from the Spotify API and returns the song information as a pandas DataFrame.
+
+        Parameters
+        ----------
+        album_data : dict
+            A dictionary of album data from Spotify API
+        market : str
+            A string representation of the Spotify market to filter on. Default is 'US'
+
+        Returns
+        -------
+        pandas.DataFrame
+            A dataframe of song ids and time for each song
+
+        """
+        series_list = []
+        album_tracks = album_data['tracks']['items']
+        # for i in range(len(data)):
+        for record in album_tracks:
+            songid = record['id']
+            markets = record['available_markets']
+            time = record['duration_ms']/1000
+            if market in markets:
+                series = pd.Series([songid, time], index=['song_id', 'time'])
+                series_list.append(series)
+        if len(series_list) > 0:
+            song_df = pd.concat(series_list, axis=1).transpose()
+        else:
+            song_df = pd.DataFrame(columns=['song_id', 'time'])
+        return song_df
+
+    @staticmethod
+    def _parse_playlist(data, market='US'):
+        """Parses a playlist data set from the Spotify API and returns the song information as a pandas DataFrame.
+
+        Parameters
+        ----------
+        data : dictionary
+            Contains songs in a playlist from the Spotify API
+        market : str
+            A string representation of the Spotify market to filter on. Default is 'US'
+
+        Returns
+        -------
+        pandas.DataFrame
+            A dataframe of song ids and time for each song
+
+        """
+        series_list = []
+        data = data['tracks']['items']
+        for item in data:
+            record = item['track']
+            songid = record['id']
+            markets = record['available_markets']
+            time = record['duration_ms']/1000
+            if market in markets:
+                series = pd.Series([songid, time], index=['song_id', 'time'])
+                series_list.append(series)
+
+        if len(series_list) > 0:
+            song_df = pd.concat(series_list, axis=1).transpose()
+        else:
+            song_df = pd.DataFrame(columns=['song_id', 'time'])
+
+        return song_df
+
+
+    @staticmethod
+    def _parse_saved_tracks(data, market='US'):
+        """Parses a the saved songs data set of the user from the Spotify API and returns the song information as a
+        pandas DataFrame.
+
+        Parameters
+        ----------
+        data : dictionary
+            Contains saved songs of the user from the Spotify API
+        market : str
+            A string representation of the Spotify market to filter on. Default is 'US'
+
+        Returns
+        -------
+        pandas.DataFrame
+            A dataframe of song ids and time for each song
+
+        """
+        series_list = []
+        for item in data:
+            record = item['track']
+            songid = record['id']
+            markets = record['available_markets']
+            time = record['duration_ms']/1000
+            if market in markets:
+                series = pd.Series([songid, time], index=['song_id', 'time'])
+                series_list.append(series)
+        if len(series_list) > 0:
+            song_df = pd.concat(series_list, axis=1).transpose()
+        else:
+            song_df = pd.DataFrame(columns=['song_id', 'time'])
+        return song_df
+
+
+    def _cache_data(self, data_key, file_path):
+        """Export the results of a dataset of song ids to local filesystem as a csv.
+
+        Parameters
+        ----------
+        data_key : str
+            Key of the dataset to save
+        file_path : str
+            Full path of filename to save the file.
+
+        Returns
+        -------
+        None
+
+        """
+        self.data[data_key].to_csv(file_path, index=False)
+
+
+    def _load_cached_data(self, data_key, file_path):
+        """Load a Saved Dataset into the Spomato data dictionary. Requires a csv with columns of 'song_id' and 'time'.
+
+        Parameters
+        ----------
+        data_key : str
+            Key to associate the loaded dataset in the data dictionary.
+        file_path : str
+            Full path of filename to load the file.
+
+        Returns
+        -------
+        None
+
+        """
+        data = pd.read_csv(file_path)
+
+        # ensure the required columns are in the dataset else raise error
+        if 'song_id' not in data.columns:
+            raise ValueError('Column song_id not found in loaded data file.')
+        if 'time' not in data.columns:
+            raise ValueError('Column song_id not found in loaded data file.')
+
+        # data looks correct, add dataset to data
+        self.data[data_key] = data
+
+
+    def get_file_data(self,
+                      data_key='default',
+                      file_path=None,
+                      save=True,
+                      source=None,
+                      reset=False,
+                      market='US'):
+        """Generates a dataset to load into Spomato to be used for generating new playlists.
+
+
+
+        Parameters
+        ----------
+        data_key : str
+            Key to associate the dataset in the data dictionary.
+        file_path : str
+            Full path of filename if loading or saving dataset.
+        save : bool
+            Boolean to save the new dataset after creating it.
+        source : dict
+            Contains all sources you want to use in generating the dataset. The dictionary is keyed by one of 3 source
+            types: savedtracks, playlist, or artist. For savedtracks the value can be None, as no further data is
+            required. For playlist or artist, the value should contain a list of all spotify ids of the appropriate
+            type.
+        reset : bool
+            Boolean to determine if the dataset should be regenerated if it already exists. This generally should be set
+            to True if you have a saved dataset to file and you want to refresh the data for that dataset.
+        market : str
+            A string representation of the Spotify market to filter on. Default is 'US'
+
+        Returns
+        -------
+        None
+
+        """
+
+
+        if data_key in self.data.keys() and reset is False:
+            msg = (f'Dataset {data_key} already exists and reset argument is set to False. '
+                   'Set reset to True to overwrite dataset.')
+            raise ValueError(msg)
+        if source is None:
+            source = {'savedtracks': None}
+
+        if file_path:
+            if os.path.isfile(file_path) and reset is False:
+                self._load_cached_data(data_key=data_key,
+                                       file_path=file_path)
+            else:
+                self.data[data_key] = self._get_new_data(source=source,
+                                                         market=market)
+                if save:
+                    self._cache_data(data_key=data_key,
+                                     file_path=file_path)
+
+        else:
+            self.data[data_key] = self._get_new_data(source=source,
+                                                     market=market)
+
+
+    def get_api_data(self,
+                     data_key='default',
+                     file_path=None,
+                     save=True,
+                     source=None,
+                     reset=False,
+                     market='US'):
+        """Generates a dataset to load into Spomato to be used for generating new playlists.
+
+
+
+        Parameters
+        ----------
+        data_key : str
+            Key to associate the dataset in the data dictionary.
+        file_path : str
+            Full path of filename if loading or saving dataset.
+        save : bool
+            Boolean to save the new dataset after creating it.
+        source : dict
+            Contains all sources you want to use in generating the dataset. The dictionary is keyed by one of 3 source
+            types: savedtracks, playlist, or artist. For savedtracks the value can be None, as no further data is
+            required. For playlist or artist, the value should contain a list of all spotify ids of the appropriate
+            type.
+        reset : bool
+            Boolean to determine if the dataset should be regenerated if it already exists. This generally should be set
+            to True if you have a saved dataset to file and you want to refresh the data for that dataset.
+        market : str
+            A string representation of the Spotify market to filter on. Default is 'US'
+
+        Returns
+        -------
+        None
+
+        """
+
+
+        if data_key in self.data.keys() and reset is False:
+            msg = (f'Dataset {data_key} already exists and reset argument is set to False. '
+                   'Set reset to True to overwrite dataset.')
+            raise ValueError(msg)
+        if source is None:
+            source = {'savedtracks': None}
+
+        if file_path:
+            if os.path.isfile(file_path) and reset is False:
+                self._load_cached_data(data_key=data_key,
+                                       file_path=file_path)
+            else:
+                self.data[data_key] = self._get_new_data(source=source,
+                                                         market=market)
+                if save:
+                    self._cache_data(data_key=data_key,
+                                     file_path=file_path)
+
+        else:
+            self.data[data_key] = self._get_new_data(source=source,
+                                                     market=market)
+
+
+    def _get_playlist_dataframe(self,
+                                source_list,
+                                market):
+        """Short summary.
+
+        Parameters
+        ----------
+        source_list : list
+            A list of playlist ids to source songs from
+        market : str
+            A string representation of the Spotify market to filter on.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A dataframe of songs with song id and time.
+
+        """
+
+        playlist_df = self._get_playlists()
+        sub_pdf = playlist_df[playlist_df.playlist_name.isin(source_list)]
+        playlist_list = []
+        for pl_id in sub_pdf.playlist_id:
+            pl_json = self.spotipy_session.user_playlist(self.current_user_id, pl_id)
+            pl_df = self._parse_playlist(pl_json, market)
+            playlist_list.append(pl_df)
+
+        data = pd.concat(playlist_list)
+        data.drop_duplicates(inplace=True)
+
+        return data
+
+
+    def _get_artist_dataframe(self,
+                              source_list,
+                              market):
+        """Short summary.
+
+        Parameters
+        ----------
+        source_list : list
+            A list of playlist ids to source songs from
+        market : str
+            A string representation of the Spotify market to filter on.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A dataframe of songs with song id and time.
+
+        """
+        artist_list = []
+        for artist in source_list:
+            artist_songs = self._get_artist_data(artist, market)
+            artist_list.append(artist_songs)
+
+        data = pd.concat(artist_list)
+        data.drop_duplicates(inplace=True)
+
+        return data
+
+
+    def _get_new_data(self,
+                      source=None,
+                      market='US'):
+        """Short summary.
+
+        Parameters
+        ----------
+        source : dict
+            Contains all sources you want to use in generating the dataset. The dictionary is keyed by one of 3 source
+            types: savedtracks, playlist, or artist. For savedtracks the value can be None, as no further data is
+            required. For playlist or artist, the value should contain a list of all spotify ids of the appropriate
+            type.
+        market : str
+            A string representation of the Spotify market to filter on.
+
+        Returns
+        -------
+        pd.DataFrame
+            A dataframe of song ids generated from the sources.
+
+        """
+        if source is None:
+            source = {'savedtracks': None}
+        data_list = []
+        for sourcetype in source.keys():
+            if sourcetype == 'savedtracks':
+                # print 'SAVEDTRACKS'
+                data = self._get_saved_tracks(market)
+                data_list.append(data)
+
+            elif sourcetype == 'playlist':
+                playlist_data = self._get_playlist_dataframe(source_list=source['playlist'],
+                                                             market=market)
+                data_list.append(playlist_data)
+
+            elif sourcetype == 'artist':
+                artist_data = self._get_artist_dataframe(source_list=source['artist'],
+                                                         market=market)
+                data_list.append(artist_data)
+
+        data = pd.concat(data_list)
+
+        return data
+
+
+    def pick_tracks(self,
+                    data_key,
+                    time=25,
+                    extra=5,
+                    time_limit=None):
+        """Short summary.
+
+        Parameters
+        ----------
+        data_key : str
+            Name of the dataset to use stored in the data object in Spomato
+        time : int
+            The length in minutes to make the playlist
+        extra : type
+            The amount of buffer time to add on to the end of the playlist.
+        time_limit : type
+            The maximum song length in minutes to include in the playlist.
+
+        Returns
+        -------
+        pd.DataFrame
+            A dataframe of song ids generated from the sources.
+
+        """
+
+        track_df = self.data[data_key]
+
+        time = time*60
+        extra = extra*60
+        if time_limit is None:
+            time_limit = time/3.0
+        track_df = track_df[track_df['time'] <= time_limit]
+        time_used = 0
+
+        track_list = []
+        done = False
+        while not done:
+
+            track_df = track_df[track_df.time <= (time + extra - time_used)]
+
+            if time_used > time:
+                done = True
+
+            elif len(track_df).isempty():
+                done = True
+            else:
+                track = track_df.sample().iloc[0]
+                track_df = track_df[track_df.song_id != track.song_id]
+                track_list.append(track)
+                time_used += track.time
+
+        picked_track_df = pd.concat(track_list, axis=1).T
+
+        return picked_track_df
+
+
+    def _get_saved_tracks(self, market):
+        """Short summary.
+
+        Parameters
+        ----------
+        market : str
+            A string representation of the Spotify market to filter on.
+
+        Returns
+        -------
+        pd.DataFrame
+            A dataframe of song ids generated from the sources.
+
+        """
+        end = False
+        i = 0
+        track_df_list = []
+        while not end:
+            data = self.spotipy_session.current_user_saved_tracks(limit=50, offset=i*50)['items']
+            if len(data) > 0:
+                track_df = self._parse_saved_tracks(data, market)
+                track_df_list.append(track_df)
+                i += 1
+            else:
+                end = True
+
+
+        track_df = pd.concat(track_df_list).reset_index(drop=True)
+        track_df.drop_duplicates(inplace=True)
+
+        return track_df
+
+
+    def _get_artist_data(self, artist_id, market):
+        """Short summary.
+
+        Parameters
+        ----------
+        artist_id : type
+            Description of parameter `artist_id`.
+        market : str
+            A string representation of the Spotify market to filter on.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A dataframe of song ids and times generated from the sources.
+
+        """
+        artist_albums = self.spotipy_session.artist_albums(artist_id)
+        album_ids = [x['id'] for x in artist_albums['items']]
+        album_jsons = self.spotipy_session.albums(album_ids)['albums']
+        songdf = []
+        for album in album_jsons:
+            if market in album['available_markets']:
+                songs = self._parse_album(album, market)
+                songdf.append(songs)
+        data = pd.concat(songdf)
+        return data
+
+
+    def _get_playlists(self):
+        """Short summary.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A dataframe consisting of the current user's playlist names and playlist ids.
+
+        """
+        pl_json = self.spotipy_session.current_user_playlists()
+        series_index = ['playlist_name', 'playlist_id']
+        playlist_list = [pd.Series([pl['name'], pl['id']], index=series_index) for pl in pl_json['items']]
+        playlist_df = pd.concat(playlist_list, axis=1).T
+        return playlist_df
+
+
+    def make_playlist(self,
+                      playlist_name,
+                      song_df,
+                      overwrite=False):
+        """Short summary.
+
+        Parameters
+        ----------
+        playlist_name : str
+            The name of the playlist you want to create/overwrite
+        song_df : pandas.DataFrame
+            Dataframe of songs to be in the playlist.
+        overwrite : bool
+            Boolean to determine whether to overwrite the playlist if it already exists.
+
+
+        Returns
+        -------
+        None
+
+        """
+        playlist_df = self._get_playlists()
+
+        if playlist_name in playlist_df.playlist_name.tolist() and not overwrite:
+            raise ValueError('Playlist {p} already exists, set overwrite to True.'.format(p=playlist_name))
+
+        if playlist_name in playlist_df.playlist_name.tolist():
+            # print('replacing')
+            playlist_id = playlist_df[playlist_df.playlist_name == playlist_name].iloc[0].playlist_id
+            self.spotipy_session.user_playlist_replace_tracks(user=self.current_user_id,
+                                                              playlist_id=playlist_id,
+                                                              tracks=song_df.song_id.tolist()
+                                                             )
+        else:
+            # print('new!')
+            self.spotipy_session.user_playlist_create(self.current_user_id,
+                                                      playlist_name,
+                                                      public=False)
+            playlist_df = self._get_playlists()
+            playlist_id = playlist_df[playlist_df.playlist_name == playlist_name].iloc[0].playlist_id
+            self.spotipy_session.user_playlist_add_tracks(self.current_user_id,
+                                                          playlist_id,
+                                                          tracks=song_df.song_id.tolist()
+                                                         )
+
+
+    def pick_track_and_make_playlist(self,
+                                     data_key,
+                                     playlist_name,
+                                     time=25,
+                                     extra=5,
+                                     time_limit=None,
+                                     overwrite=False):
+        """Short summary.
+
+        Parameters
+        ----------
+        data_key : str
+            Name of the dataset to use stored in the data object in Spomato
+        playlist_name : str
+            The name of the playlist you want to create/overwrite
+        time : int
+            The length in minutes to make the playlist
+        extra : int
+            The amount of buffer time to add on to the end of the playlist.
+        time_limit : int
+            The maximum song length in minutes to include in the playlist.
+        overwrite : bool
+            Boolean to determine whether to overwrite the playlist if it already exists.
+
+        Returns
+        -------
+        None
+
+        """
+
+        song_df = self.pick_tracks(data_key=data_key,
+                                   time=time,
+                                   extra=extra,
+                                   time_limit=time_limit)
+
+        self.make_playlist(playlist_name=playlist_name,
+                           song_df=song_df,
+                           overwrite=overwrite)
+
+
+    def artist_id_search(self,
+                         artist,
+                         limit=10,
+                         offset=0):
+        """Short summary.
+
+        Parameters
+        ----------
+        artist : str
+            Name of the artist to search
+        limit : int
+            Number of records to return from search
+        offset : int
+            The number of records to skip in search result.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A dataframe of artist names and ids from the search result.
+
+        """
+        artist_results = self.spotipy_session.search(artist,
+                                                     type='artist',
+                                                     limit=limit,
+                                                     offset=offset)
+        artist_items = artist_results['artists']['items']
+
+        if len(artist_items) > 0:
+            index = ['artist', 'id']
+            artist_df = pd.concat([pd.Series([x['name'], x['id']], index=index) for x in artist_items], axis=1).T
+        else:
+            artist_df = pd.DataFrame(columns=['name', 'id'])
+        return artist_df
