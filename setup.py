@@ -36,6 +36,7 @@ setup(name='spomato',
       license='MIT',
       keywords=['python', 'spotify', 'spotipy', 'tomato', 'timer', 'music'],
       py_modules='spomato',
+      packages=['spomato.py'],
       install_requires=[
           'pandas',
           'spotipy'
