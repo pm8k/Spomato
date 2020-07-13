@@ -503,7 +503,7 @@ class Spomato():
             if time_used > time:
                 done = True
             # if the filtered song list is empty, there are no songs left, so mark iteration done
-            elif len(track_df).isempty():
+            elif track_df.isempty():
                 done = True
             # otherwise, take a random track from the dataframe, add to the track list, and remove it from being
             # selected again
