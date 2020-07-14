@@ -128,8 +128,8 @@ class Spomato():
         return song_df
 
     @staticmethod
-    def _parse_playlist(data, market='US'):
-        """Parses a playlist data set from the Spotify API and returns the song information as a pandas DataFrame.
+    def _parse_user_playlist(data, market='US'):
+        """Parses a user playlist data set from the Spotify API and returns the song information as a pandas DataFrame.
 
         Parameters
         ----------
@@ -147,6 +147,45 @@ class Spomato():
         # iterate over each record in the playlist data and parse the track data
         series_list = []
         data = data['tracks']['items']
+        for item in data:
+            record = item['track']
+            songid = record['id']
+            markets = record['available_markets']
+            # time is stored in milliseconds, divide to convert to seconds.
+            time = record['duration_ms']/1000
+            # filter out any songs that are not in the specified market
+            if market in markets:
+                series = pd.Series([songid, time], index=['song_id', 'time'])
+                series_list.append(series)
+
+        if len(series_list) > 0:
+            song_df = pd.concat(series_list, axis=1).transpose()
+        else:
+            song_df = pd.DataFrame(columns=['song_id', 'time'])
+
+        return song_df
+
+
+    @staticmethod
+    def _parse_public_playlist(data, market='US'):
+        """Parses public playlist data set from the Spotify API and returns the song information as a pandas DataFrame.
+
+        Parameters
+        ----------
+        data : dictionary
+            Contains songs in a playlist from the Spotify API
+        market : str
+            A string representation of the Spotify market to filter on. Default is 'US'
+
+        Returns
+        -------
+        pandas.DataFrame
+            A dataframe of song ids and time for each song
+
+        """
+        # iterate over each record in the playlist data and parse the track data
+        series_list = []
+        data = data['items']
         for item in data:
             record = item['track']
             songid = record['id']
@@ -354,14 +393,20 @@ class Spomato():
         """
         # get the list of playlists and filter out datasets included in the source list
         playlist_df = self.get_playlists()
-        sub_pdf = playlist_df[playlist_df.playlist_name.isin(source_list)]
 
-        # iterate over each playlist, get the data from the Spotify API, and parse the song data
         playlist_list = []
-        for pl_id in sub_pdf.playlist_id:
-            pl_json = self.spotipy_session.user_playlist(self.current_user_id, pl_id)
-            pl_df = self._parse_playlist(pl_json, market)
-            playlist_list.append(pl_df)
+        for pl_id in source_list:
+            if not playlist_df[playlist_df.playlist_id == pl_id].empty:
+                pl_json = self.spotipy_session.user_playlist(self.current_user_id, pl_id)
+                pl_df = self._parse_user_playlist(pl_json, market)
+                playlist_list.append(pl_df)
+            else:
+                pl_json = self.spotipy_session.playlist_tracks(pl_id)
+                pl_df = self._parse_public_playlist(pl_json, market)
+                playlist_list.append(pl_df)
+
+        if len(playlist_list) == 0:
+            raise ValueError('No valid playlists.')
 
         # concatinate the dataframes of all the playlist and remove any duplicates
         data = pd.concat(playlist_list)
@@ -425,7 +470,7 @@ class Spomato():
         # if the source is not specified, default to the saved tracks of the current user.
         if source is None:
             source = {'savedtracks': None}
-        elif type(source) != dict:
+        elif not isinstance(source, dict):
             raise ValueError('Argument source must be of type dict or None.')
         else:
             for key in source.keys():
