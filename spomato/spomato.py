@@ -425,6 +425,12 @@ class Spomato():
         # if the source is not specified, default to the saved tracks of the current user.
         if source is None:
             source = {'savedtracks': None}
+        elif type(source) != dict:
+            raise ValueError('Argument source must be of type dict or None.')
+        else:
+            for key in source.keys():
+                if key not in ['savedtracks', 'artist', 'playlist']:
+                    raise ValueError(f'{key} is not a valid data source type.')
 
         # iterate over the source types in the source dictionary and parse out the data
         data_list = []
