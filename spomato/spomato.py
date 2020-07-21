@@ -313,8 +313,6 @@ class Spomato():
             raise TypeError('Argument data_key must be of type string')
         if file_path is not None and not isinstance(file_path, str):
             raise TypeError('Argument file_path must be of type string')
-        if not isinstance(overwrite, (bool, int)):
-            raise TypeError('Argument overwrite must be of type bool or int')
         # check if the data key already exists to ensure data is not unexpectedly overwritten
         if data_key in self.data.keys() and overwrite is False:
             msg = (f'Dataset {data_key} already exists and reset argument is set to False. '
@@ -762,6 +760,16 @@ class Spomato():
         None
 
         """
+        if not isinstance(data_key, str):
+            raise TypeError('Argument data_key must be of type string')
+        if not isinstance(playlist_name, str):
+            raise TypeError('Argument playlist_name must be of type string')
+        if not isinstance(time, (int, float)):
+            raise TypeError('Argument time must be of type int or float')
+        if not isinstance(extra, (int, float)):
+            raise TypeError('Argument extra must be of type int or float')
+        if time_limit is not None and not isinstance(time_limit, (int, float)):
+            raise TypeError('Argument time_limit must be of type int or float')
         # generate the list of songs for the playlist
         song_df = self.pick_tracks(data_key=data_key,
                                    time=time,
