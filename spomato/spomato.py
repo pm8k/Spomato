@@ -309,6 +309,12 @@ class Spomato():
         None
 
         """
+        if not isinstance(data_key, str):
+            raise TypeError('Argument data_key must be of type string')
+        if file_path is not None and not isinstance(file_path, str):
+            raise TypeError('Argument file_path must be of type string')
+        if not isinstance(overwrite, (bool, int)):
+            raise TypeError('Argument overwrite must be of type bool or int')
         # check if the data key already exists to ensure data is not unexpectedly overwritten
         if data_key in self.data.keys() and overwrite is False:
             msg = (f'Dataset {data_key} already exists and reset argument is set to False. '
@@ -353,6 +359,16 @@ class Spomato():
         None
 
         """
+        if not isinstance(data_key, str):
+            raise TypeError('Argument data_key must be of type string')
+        if file_path is not None and not isinstance(file_path, str):
+            raise TypeError('Argument file_path must be of type string')
+        if source is not None and not isinstance(source, dict):
+            raise TypeError('Argument source must be of type dict')
+        if not isinstance(reset, (bool, int)):
+            raise TypeError('Argument reset must be of type bool or int')
+        if not isinstance(market, str):
+            raise TypeError('Argument market must be of type string')
         # check if the data key already exists to ensure data is not unexpectedly overwritten
         if data_key in self.data.keys() and reset is False:
             msg = (f'Dataset {data_key} already exists and reset argument is set to False. '
@@ -472,6 +488,8 @@ class Spomato():
             source = {'savedtracks': None}
         elif not isinstance(source, dict):
             raise ValueError('Argument source must be of type dict or None.')
+        elif len(source.keys()) == 0:
+            raise ValueError('Argument source must contain at least 1 valid key from: savedtracks, artist, playlist')
         else:
             for key in source.keys():
                 if key not in ['savedtracks', 'artist', 'playlist']:
@@ -526,7 +544,14 @@ class Spomato():
             A dataframe of song ids generated from the sources.
 
         """
-
+        if not isinstance(data_key, str):
+            raise TypeError('Argument data_key must be of type string')
+        if not isinstance(data_key, (int,float)):
+            raise TypeError('Argument time must be of type int or float')
+        if not isinstance(extra, (int,float))::
+            raise TypeError('Argument extra must be of type int or float')
+        if time_limit is not None and not isinstance(time_limit, (int,float))::
+            raise TypeError('Argument extra must be of type int or float')
         track_df = self.data[data_key]
 
         # the time in our dataframe is specified in seconds, we need to convert the times
@@ -677,6 +702,10 @@ class Spomato():
         None
 
         """
+        if not isinstance(playlist_name, str):
+            raise TypeError('Argument playlist_name must be of type string')
+        if not isinstance(song_df, pd.DataFrame):
+            raise TypeError('Argument playlist_name must be of type string')
         # get the user's playlists
         playlist_df = self.get_playlists()
 
@@ -755,7 +784,7 @@ class Spomato():
         Parameters
         ----------
         artist : str
-            Name of the artist to search
+            Name of the artist to search. More complex searches can be run using the query guidelines in Spotipy.
         limit : int
             Number of records to return from search
         offset : int
@@ -767,6 +796,10 @@ class Spomato():
             A dataframe of artist names and ids from the search result.
 
         """
+        if not isinstance(limit, int):
+            raise TypeError('Argument limit must be of type int')
+        if not isinstance(offset, int):
+            raise TypeError('Argument offset must be of type int')
         artist_results = self.spotipy_session.search(artist,
                                                      type='artist',
                                                      limit=limit,
