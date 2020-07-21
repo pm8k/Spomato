@@ -548,7 +548,7 @@ class Spomato():
             raise TypeError('Argument data_key must be of type string')
         if not isinstance(data_key, (int,float)):
             raise TypeError('Argument time must be of type int or float')
-        if not isinstance(extra, (int,float))::
+        if not isinstance(extra, (int,float)):
             raise TypeError('Argument extra must be of type int or float')
         if time_limit is not None and not isinstance(time_limit, (int,float))::
             raise TypeError('Argument extra must be of type int or float')
