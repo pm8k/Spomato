@@ -544,12 +544,12 @@ class Spomato():
         """
         if not isinstance(data_key, str):
             raise TypeError('Argument data_key must be of type string')
-        if not isinstance(data_key, (int, float)):
+        if not isinstance(time, (int, float)):
             raise TypeError('Argument time must be of type int or float')
         if not isinstance(extra, (int, float)):
             raise TypeError('Argument extra must be of type int or float')
         if time_limit is not None and not isinstance(time_limit, (int, float)):
-            raise TypeError('Argument extra must be of type int or float')
+            raise TypeError('Argument time_limit must be of type int or float')
         track_df = self.data[data_key]
 
         # the time in our dataframe is specified in seconds, we need to convert the times
@@ -703,7 +703,7 @@ class Spomato():
         if not isinstance(playlist_name, str):
             raise TypeError('Argument playlist_name must be of type string')
         if not isinstance(song_df, pd.DataFrame):
-            raise TypeError('Argument playlist_name must be of type string')
+            raise TypeError('Argument song_df must be of type string')
         # get the user's playlists
         playlist_df = self.get_playlists()
 
