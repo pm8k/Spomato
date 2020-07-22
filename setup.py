@@ -35,7 +35,7 @@ setup(name='spomato',
       author_email='astromars42@gmail.com',
       license='MIT',
       keywords=['python', 'spotify', 'spotipy', 'tomato', 'timer', 'music'],
-      py_modules='spomato',
+      py_modules=['spomato'],
       packages=['spomato'],
       install_requires=[
           'pandas',
